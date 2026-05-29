@@ -335,17 +335,53 @@ function latLonToBNG(lat, lon) {
   return { E: Math.round(E), N: Math.round(N) };
 }
 
-// ── ArcGIS REST query (JSON, coordinates pre-converted to BNG) ───────────────
-async function query(latlng) {
+// ── ArcGIS REST query via JSONP (bypasses CORS — BGS server blocks fetch()) ──
+let _jsonpCounter = 0;
+
+function query(latlng) {
   setDot('spin'); setRock('Querying BGS geology…');
   showCover('Querying geology…');
   clearFields();
 
   const layerId = LAYER_IDS[currentLayer];
-
-  // Convert lat/lon to British National Grid (EPSG:27700) which is what BGS uses
   const bng = latLonToBNG(latlng.lat, latlng.lng);
+  const cbName = '_bgs_cb_' + (++_jsonpCounter);
+  let timeout;
 
+  // Create a global callback that ArcGIS will call with the result
+  window[cbName] = function(data) {
+    clearTimeout(timeout);
+    hideCover();
+    // Clean up
+    delete window[cbName];
+    const old = document.getElementById(cbName);
+    if (old) old.remove();
+
+    if (data.error) {
+      setDot('err');
+      setRock('BGS returned an error — try a different spot');
+      return;
+    }
+    if (!data.features || data.features.length === 0) {
+      setDot('err');
+      setRock('No geology data here — may be offshore or outside UK coverage');
+      setVal('v-formation', 'Try zooming in and tapping again');
+      return;
+    }
+    displayAttrs(data.features[0].attributes);
+  };
+
+  // Timeout if BGS doesn't respond in 12 seconds
+  timeout = setTimeout(function() {
+    hideCover();
+    delete window[cbName];
+    const old = document.getElementById(cbName);
+    if (old) old.remove();
+    setDot('err');
+    setRock('BGS server timed out — try again in a moment');
+  }, 12000);
+
+  // Inject a <script> tag — JSONP bypasses CORS entirely
   const params = new URLSearchParams({
     geometry:       `${bng.E},${bng.N}`,
     geometryType:   'esriGeometryPoint',
@@ -353,35 +389,22 @@ async function query(latlng) {
     spatialRel:     'esriSpatialRelIntersects',
     outFields:      '*',
     returnGeometry: 'false',
+    callback:       cbName,
     f:              'json'
   });
 
-  const url = `${REST}${layerId}/query?${params}`;
-
-  try {
-    const resp = await fetch(url);
-    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-    const data = await resp.json();
+  const script = document.createElement('script');
+  script.id  = cbName;
+  script.src = `${REST}${layerId}/query?${params}`;
+  script.onerror = function() {
+    clearTimeout(timeout);
     hideCover();
-
-    if (data.error) throw new Error(data.error.message || 'BGS API error');
-
-    if (!data.features || data.features.length === 0) {
-      setDot('err');
-      setRock('No geology data here — may be offshore or outside coverage');
-      setVal('v-formation', 'Try zooming in and tapping again');
-      return;
-    }
-
-    const attrs = data.features[0].attributes;
-    displayAttrs(attrs);
-
-  } catch (err) {
-    hideCover();
+    delete window[cbName];
+    script.remove();
     setDot('err');
-    setRock('Query failed — check your internet connection');
-    console.error('BGS query error:', err, 'BNG coords:', latLonToBNG(latlng.lat, latlng.lng));
-  }
+    setRock('Could not reach BGS server — check your connection');
+  };
+  document.head.appendChild(script);
 }
 
 function displayAttrs(a) {
