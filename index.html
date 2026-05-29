@@ -9,15 +9,15 @@
 <style>
 * { margin:0; padding:0; box-sizing:border-box; }
 :root {
-  --bg:#0f0f0d; --surface:#1c1c18; --surface2:#242420;
-  --border:rgba(255,255,255,0.09); --text:#ede9de;
-  --muted:#7a7870; --accent:#c8a96e; --green:#7eb89a;
-  --red:#d9705a; --font:'Georgia',serif; --sans:-apple-system,'Helvetica Neue',sans-serif;
+  --bg:#0f0f0d; --surface:#1c1c18; --border:rgba(255,255,255,0.09);
+  --text:#ede9de; --muted:#7a7870; --accent:#c8a96e;
+  --green:#7eb89a; --red:#d9705a;
+  --font:'Georgia',serif; --sans:-apple-system,'Helvetica Neue',sans-serif;
 }
 html,body { height:100%; overflow:hidden; background:var(--bg); }
 #app { height:100vh; display:flex; flex-direction:column; font-family:var(--sans); color:var(--text); }
 
-/* ── Header ── */
+/* Header */
 #header {
   background:var(--bg); border-bottom:1px solid var(--border);
   padding:11px 14px; display:flex; align-items:center;
@@ -33,7 +33,7 @@ html,body { height:100%; overflow:hidden; background:var(--bg); }
 }
 .lbtn.active { border-color:var(--accent); color:var(--accent); background:rgba(200,169,110,.12); }
 
-/* ── Map ── */
+/* Map */
 #map { flex:1; min-height:0; position:relative; }
 
 /* Locate button */
@@ -43,10 +43,10 @@ html,body { height:100%; overflow:hidden; background:var(--bg); }
   border:1px solid var(--border); background:var(--surface);
   color:var(--text); font-size:22px; cursor:pointer;
   display:flex; align-items:center; justify-content:center;
-  box-shadow:0 2px 10px rgba(0,0,0,.6); transition:all .15s;
-  user-select:none;
+  box-shadow:0 2px 10px rgba(0,0,0,.6); transition:all .15s; user-select:none;
 }
 #locate-btn:active { transform:scale(.92); }
+#locate-btn svg { transition: all .3s; }
 #locate-btn.spin svg { animation:spin .9s linear infinite; }
 @keyframes spin { to { transform:rotate(360deg); } }
 
@@ -59,10 +59,7 @@ html,body { height:100%; overflow:hidden; background:var(--bg); }
   box-shadow:0 2px 10px rgba(0,0,0,.5);
 }
 #opacity-wrap label { font-size:9px; color:var(--muted); text-transform:uppercase; letter-spacing:.06em; }
-#opa {
-  writing-mode:vertical-lr; direction:rtl;
-  width:4px; height:56px; cursor:pointer; accent-color:var(--accent);
-}
+#opa { writing-mode:vertical-lr; direction:rtl; width:4px; height:56px; cursor:pointer; accent-color:var(--accent); }
 
 /* Tap hint */
 #hint {
@@ -75,41 +72,33 @@ html,body { height:100%; overflow:hidden; background:var(--bg); }
 
 /* Loading overlay */
 #cover {
-  position:absolute; inset:0; background:rgba(15,15,13,.65);
-  z-index:800; display:flex; align-items:center; justify-content:center;
+  position:absolute; inset:0; background:rgba(15,15,13,.65); z-index:800;
+  display:flex; align-items:center; justify-content:center;
   flex-direction:column; gap:10px; pointer-events:none;
   opacity:0; transition:opacity .25s;
 }
 #cover.on { opacity:1; pointer-events:all; }
-.ring {
-  width:30px; height:30px; border:2px solid var(--border);
-  border-top-color:var(--accent); border-radius:50%;
-  animation:spin .75s linear infinite;
-}
+.ring { width:30px; height:30px; border:2px solid var(--border); border-top-color:var(--accent); border-radius:50%; animation:spin .75s linear infinite; }
 #cover-msg { font-size:13px; color:var(--muted); }
 
-/* ── Info panel ── */
+/* Info panel */
 #panel {
   background:var(--surface); border-top:1px solid var(--border);
-  flex-shrink:0; max-height:168px; overflow:hidden;
-  transition:max-height .28s ease;
+  flex-shrink:0; max-height:168px; overflow:hidden; transition:max-height .28s ease;
 }
-#panel.open { max-height:340px; overflow-y:auto; }
-
+#panel.open { max-height:360px; overflow-y:auto; }
 #phead {
   padding:11px 14px 9px; display:flex; align-items:center;
-  justify-content:space-between; cursor:pointer;
-  border-bottom:1px solid var(--border);
+  justify-content:space-between; cursor:pointer; border-bottom:1px solid var(--border);
 }
 #phead-left { display:flex; align-items:center; gap:9px; }
 #dot { width:11px; height:11px; border-radius:50%; background:var(--muted); flex-shrink:0; transition:background .3s; }
 #dot.ok   { background:var(--accent); }
-#dot.spin { background:var(--green); animation:blink 1s infinite; }
+#dot.busy { background:var(--green); animation:blink 1s infinite; }
 #dot.err  { background:var(--red); }
 @keyframes blink { 0%,100%{opacity:1} 50%{opacity:.3} }
-
 #rock { font-family:var(--font); font-size:14px; color:var(--text); font-style:italic; line-height:1.3; }
-#chevron { font-size:17px; color:var(--muted); transition:transform .2s; background:none; border:none; color:var(--muted); cursor:pointer; padding:0 4px; }
+#chevron { font-size:17px; background:none; border:none; color:var(--muted); cursor:pointer; padding:0 4px; transition:transform .2s; }
 #panel.open #chevron { transform:rotate(180deg); }
 
 /* Coord row */
@@ -120,10 +109,7 @@ html,body { height:100%; overflow:hidden; background:var(--bg); }
 
 /* Detail rows */
 #pbody { padding:0 14px 12px; }
-.row {
-  display:flex; justify-content:space-between; align-items:baseline;
-  padding:5px 0; border-bottom:1px solid var(--border); font-size:13px;
-}
+.row { display:flex; justify-content:space-between; align-items:baseline; padding:5px 0; border-bottom:1px solid var(--border); font-size:13px; }
 .row:last-child { border-bottom:none; }
 .rl { color:var(--muted); font-size:10px; text-transform:uppercase; letter-spacing:.06em; flex-shrink:0; margin-right:10px; }
 .rv { color:var(--text); text-align:right; }
@@ -140,46 +126,35 @@ html,body { height:100%; overflow:hidden; background:var(--bg); }
 </head>
 <body>
 <div id="app">
-
   <div id="header">
     <div>
       <h1>UK Geology Explorer</h1>
-      <p>British Geological Survey · BGS 50k &amp; 625k</p>
+      <p>British Geological Survey · 625k</p>
     </div>
     <div id="layer-controls">
-      <button class="lbtn active" id="btn-bed"  onclick="setLayer('bed')">Bedrock</button>
-      <button class="lbtn"        id="btn-sup"  onclick="setLayer('sup')">Superficial</button>
+      <button class="lbtn active" id="btn-bed" onclick="setLayer('bed')">Bedrock</button>
+      <button class="lbtn"        id="btn-sup" onclick="setLayer('sup')">Superficial</button>
     </div>
   </div>
 
   <div id="map">
-    <div id="cover" class="on">
-      <div class="ring"></div>
-      <div id="cover-msg">Loading map…</div>
-    </div>
+    <div id="cover" class="on"><div class="ring"></div><div id="cover-msg">Loading map…</div></div>
     <div id="hint">Tap anywhere on the map to query geology</div>
-
-    <button id="locate-btn" onclick="locate()" title="Find my location" aria-label="Find my location">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
-           stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+    <button id="locate-btn" onclick="locate()" aria-label="Find my location">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
         <circle cx="12" cy="12" r="3"/><path d="M12 2v3m0 14v3M2 12h3m14 0h3"/>
-        <path d="M12 5a7 7 0 1 0 0 14A7 7 0 0 0 12 5z"/>
+        <circle cx="12" cy="12" r="7"/>
       </svg>
     </button>
-
     <div id="opacity-wrap">
       <label>Opacity</label>
-      <input type="range" id="opa" min="20" max="100" value="70" step="5"
-             oninput="setOpacity(this.value)">
+      <input type="range" id="opa" min="20" max="100" value="70" step="5" oninput="setOpacity(this.value)">
     </div>
   </div>
 
   <div id="panel">
     <div id="phead" onclick="togglePanel()">
-      <div id="phead-left">
-        <div id="dot"></div>
-        <span id="rock">Tap the map or press ⊕ to begin</span>
-      </div>
+      <div id="phead-left"><div id="dot"></div><span id="rock">Tap the map or press ⊕ to begin</span></div>
       <button id="chevron" aria-label="Expand">▾</button>
     </div>
     <div id="coords">
@@ -194,35 +169,34 @@ html,body { height:100%; overflow:hidden; background:var(--bg); }
       <div class="row"><span class="rl">Map code</span> <span class="rv dim"  id="v-code">—</span></div>
     </div>
   </div>
-
 </div>
-<script>
-// ── Config ──────────────────────────────────────────────────────────────────
-// BGS WMS for tile display (images — no CORS issue)
-const WMS_625 = 'https://ogc.bgs.ac.uk/cgi-bin/BGS_Bedrock_and_Superficial_Geology/ows?';
-const WMS_50  = 'https://map.bgs.ac.uk/arcgis/services/BGS_Detailed_Geology/MapServer/WMSServer?';
 
-// BGS ArcGIS REST for feature queries (JSON — supports CORS)
-const REST = 'https://map.bgs.ac.uk/arcgis/rest/services/BGS_Detailed_Geology/MapServer/';
-// Layer IDs: 4=Bedrock, 3=Superficial deposits
-const LAYER_IDS = { bed: 4, sup: 3 };
-const LAYER_WMS = {
-  bed: { l625: 'BGS_625k_Bedrock_Geology',      l50: '4' },
-  sup: { l625: 'BGS_625k_Superficial_Deposits', l50: '3' }
+<script>
+// ── BGS OGC API (ogcapi.bgs.ac.uk) — modern REST, supports CORS fetch() ──────
+// Confirmed working collections:
+const OGC_BASE = 'https://ogcapi.bgs.ac.uk/collections/';
+const COLLECTIONS = {
+  bed: 'bgsgeology625kbedrock',
+  sup: 'bgsgeology625ksuperficial'
 };
 
-// ── State ────────────────────────────────────────────────────────────────────
-let map, wms625, wms50, marker;
+// BGS WMS for tile overlay display (images, no CORS issue)
+const WMS_URL = 'https://ogc.bgs.ac.uk/cgi-bin/BGS_Bedrock_and_Superficial_Geology/ows?';
+const WMS_LAYERS = {
+  bed: 'BGS_625k_Bedrock_Geology',
+  sup: 'BGS_625k_Superficial_Deposits'
+};
+
+let map, wmsLayer, marker;
 let currentLayer = 'bed';
 let opacity = 0.70;
 let panelOpen = false;
-let hintGone = false;
+let hintGone  = false;
 
-// ── Init ─────────────────────────────────────────────────────────────────────
+// ── Init ──────────────────────────────────────────────────────────────────────
 function init() {
   map = L.map('map', { center:[54.3, -2.8], zoom:6, zoomControl:true });
 
-  // OSM works reliably from local file (no mixed-content issues)
   L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
     maxZoom:19,
     attribution:'© <a href="https://openstreetmap.org">OpenStreetMap</a> contributors'
@@ -231,26 +205,21 @@ function init() {
   addWms();
   hideCover();
 
-  map.on('click', e => { hideHint(); placeMarker(e.latlng); query(e.latlng); });
+  map.on('click',         e => { hideHint(); placeMarker(e.latlng); query(e.latlng); });
   map.on('locationfound', onFound);
   map.on('locationerror', onLocErr);
 }
 
-// ── WMS tile layers (display only) ──────────────────────────────────────────
+// ── WMS overlay ───────────────────────────────────────────────────────────────
 function addWms() {
-  if (wms625) map.removeLayer(wms625);
-  if (wms50)  map.removeLayer(wms50);
-  const cfg = LAYER_WMS[currentLayer];
-
-  wms625 = L.tileLayer.wms(WMS_625, {
-    layers: cfg.l625, format:'image/png', transparent:true,
-    version:'1.3.0', opacity, attribution:'Contains BGS materials © UKRI 2024'
-  }).addTo(map);
-
-  wms50 = L.tileLayer.wms(WMS_50, {
-    layers: cfg.l50, format:'image/png', transparent:true,
-    version:'1.3.0', opacity, minZoom:11,
-    attribution:'Contains BGS materials © UKRI 2024'
+  if (wmsLayer) map.removeLayer(wmsLayer);
+  wmsLayer = L.tileLayer.wms(WMS_URL, {
+    layers:      WMS_LAYERS[currentLayer],
+    format:      'image/png',
+    transparent: true,
+    version:     '1.3.0',
+    opacity:     opacity,
+    attribution: 'BGS materials © UKRI 2024'
   }).addTo(map);
 }
 
@@ -264,15 +233,13 @@ function setLayer(type) {
 
 function setOpacity(v) {
   opacity = v / 100;
-  if (wms625) wms625.setOpacity(opacity);
-  if (wms50)  wms50.setOpacity(opacity);
+  if (wmsLayer) wmsLayer.setOpacity(opacity);
 }
 
-// ── Geolocation ──────────────────────────────────────────────────────────────
+// ── Geolocation ───────────────────────────────────────────────────────────────
 function locate() {
-  const btn = document.getElementById('locate-btn');
-  btn.classList.add('spin');
-  setDot('spin'); setRock('Finding your location…');
+  document.getElementById('locate-btn').classList.add('spin');
+  setDot('busy'); setRock('Finding your location…');
   showCover('Locating you…');
   map.locate({ setView:true, maxZoom:14, timeout:10000 });
 }
@@ -286,154 +253,67 @@ function onFound(e) {
 
 function onLocErr(e) {
   document.getElementById('locate-btn').classList.remove('spin');
-  hideCover();
-  setDot('err');
-  // Give a helpful message depending on the error
-  const msg = e.message && e.message.includes('denied')
-    ? 'Location blocked — allow location access in your browser settings, or tap the map'
-    : 'Location unavailable — tap any point on the map instead';
-  setRock(msg);
+  hideCover(); setDot('err');
+  setRock(e.message && e.message.includes('denied')
+    ? 'Location blocked — allow access in browser settings, or tap the map'
+    : 'Location unavailable — tap the map instead');
 }
 
-// ── WGS84 → British National Grid conversion (Helmert + OSGB36 projection) ──
-// Based on Ordnance Survey "A Guide to coordinate systems in Great Britain"
-function latLonToBNG(lat, lon) {
-  const a = 6377563.396, b = 6356256.909;
-  const F0 = 0.9996012717;
-  const lat0 = 49 * Math.PI / 180, lon0 = -2 * Math.PI / 180;
-  const N0 = -100000, E0 = 400000;
-  const e2 = 1 - (b*b)/(a*a);
-  const n = (a-b)/(a+b);
+// ── BGS OGC API query (fetch + bbox) ─────────────────────────────────────────
+// Uses ogcapi.bgs.ac.uk which properly supports CORS from browsers.
+// We query with a tiny bbox around the tapped point (±0.005°, ~500m).
+async function query(latlng) {
+  setDot('busy'); setRock('Querying BGS geology…');
+  showCover('Querying BGS…'); clearFields();
 
-  const latR = lat * Math.PI / 180;
-  const lonR = lon * Math.PI / 180;
+  const d    = 0.005; // ~500m bounding box
+  const lat  = latlng.lat;
+  const lon  = latlng.lng;
+  const bbox = `${lon-d},${lat-d},${lon+d},${lat+d}`;
+  const col  = COLLECTIONS[currentLayer];
+  const url  = `${OGC_BASE}${col}/items?f=json&limit=1&bbox=${bbox}`;
 
-  const sinLat = Math.sin(latR), cosLat = Math.cos(latR), tanLat = Math.tan(latR);
-  const nu = a * F0 / Math.sqrt(1 - e2 * sinLat * sinLat);
-  const rho = a * F0 * (1 - e2) / Math.pow(1 - e2 * sinLat * sinLat, 1.5);
-  const eta2 = nu/rho - 1;
-
-  const n2 = n*n, n3 = n2*n;
-  const M = b * F0 * (
-    (1 + n + 1.25*n2 + 1.25*n3) * (latR - lat0)
-    - (3*n + 3*n2 + 2.625*n3) * Math.sin(latR - lat0) * Math.cos(latR + lat0)
-    + (1.875*n2 + 1.875*n3) * Math.sin(2*(latR - lat0)) * Math.cos(2*(latR + lat0))
-    - (35/24)*n3 * Math.sin(3*(latR - lat0)) * Math.cos(3*(latR + lat0))
-  );
-
-  const I    = M + N0;
-  const II   = nu/2 * sinLat * cosLat;
-  const III  = nu/24 * sinLat * cosLat*cosLat*cosLat * (5 - tanLat*tanLat + 9*eta2);
-  const IIIA = nu/720 * sinLat * Math.pow(cosLat,5) * (61 - 58*tanLat*tanLat + Math.pow(tanLat,4));
-  const IV   = nu * cosLat;
-  const V    = nu/6 * cosLat*cosLat*cosLat * (nu/rho - tanLat*tanLat);
-  const VI   = nu/120 * Math.pow(cosLat,5) * (5 - 18*tanLat*tanLat + Math.pow(tanLat,4) + 14*eta2 - 58*tanLat*tanLat*eta2);
-
-  const dLon = lonR - lon0;
-  const N = I + II*dLon*dLon + III*Math.pow(dLon,4) + IIIA*Math.pow(dLon,6);
-  const E = E0 + IV*dLon + V*Math.pow(dLon,3) + VI*Math.pow(dLon,5);
-  return { E: Math.round(E), N: Math.round(N) };
-}
-
-// ── ArcGIS REST query via JSONP (bypasses CORS — BGS server blocks fetch()) ──
-let _jsonpCounter = 0;
-
-function query(latlng) {
-  setDot('spin'); setRock('Querying BGS geology…');
-  showCover('Querying geology…');
-  clearFields();
-
-  const layerId = LAYER_IDS[currentLayer];
-  const bng = latLonToBNG(latlng.lat, latlng.lng);
-  const cbName = '_bgs_cb_' + (++_jsonpCounter);
-  let timeout;
-
-  // Create a global callback that ArcGIS will call with the result
-  window[cbName] = function(data) {
-    clearTimeout(timeout);
+  try {
+    const resp = await fetch(url);
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+    const data = await resp.json();
     hideCover();
-    // Clean up
-    delete window[cbName];
-    const old = document.getElementById(cbName);
-    if (old) old.remove();
 
-    if (data.error) {
-      setDot('err');
-      setRock('BGS returned an error — try a different spot');
-      return;
-    }
     if (!data.features || data.features.length === 0) {
       setDot('err');
       setRock('No geology data here — may be offshore or outside UK coverage');
-      setVal('v-formation', 'Try zooming in and tapping again');
+      setVal('v-formation', 'Try a different location or zoom in');
       return;
     }
-    displayAttrs(data.features[0].attributes);
-  };
 
-  // Timeout if BGS doesn't respond in 12 seconds
-  timeout = setTimeout(function() {
-    hideCover();
-    delete window[cbName];
-    const old = document.getElementById(cbName);
-    if (old) old.remove();
-    setDot('err');
-    setRock('BGS server timed out — try again in a moment');
-  }, 12000);
+    displayProps(data.features[0].properties);
 
-  // Inject a <script> tag — JSONP bypasses CORS entirely
-  const params = new URLSearchParams({
-    geometry:       `${bng.E},${bng.N}`,
-    geometryType:   'esriGeometryPoint',
-    inSR:           '27700',
-    spatialRel:     'esriSpatialRelIntersects',
-    outFields:      '*',
-    returnGeometry: 'false',
-    callback:       cbName,
-    f:              'json'
-  });
-
-  const script = document.createElement('script');
-  script.id  = cbName;
-  script.src = `${REST}${layerId}/query?${params}`;
-  script.onerror = function() {
-    clearTimeout(timeout);
-    hideCover();
-    delete window[cbName];
-    script.remove();
-    setDot('err');
-    setRock('Could not reach BGS server — check your connection');
-  };
-  document.head.appendChild(script);
+  } catch (err) {
+    hideCover(); setDot('err');
+    setRock('Query failed — check your internet connection');
+    console.error('BGS OGC API error:', err);
+  }
 }
 
-function displayAttrs(a) {
-  // BGS 50k field names (may vary — we try multiple fallbacks)
-  const formation = pick(a, ['LEX_D','LEXD','RCS_D','LAYMAN_D','DESCRIPTION','NAME']) || '—';
-  const rocktype  = pick(a, ['RCS_D','LITH_D','LITHOLOGY','ROCK_TYPE','TYPE'])       || '—';
-  const age       = pick(a, ['MAX_TIME_D','MIN_TIME_D','AGE_D','AGE'])                || '—';
-  const period    = pick(a, ['SUPERGROUP','STRATAGE','GROUP_','PERIOD','ERA'])         || '—';
-  const code      = pick(a, ['LEX','RCS','MAP_CODE','UNIT_CODE','CODE'])              || '—';
-
-  // Best display name for the headline
-  const headline = pick(a, ['LAYMAN_D','LEX_D','LEXD','RCS_D','DESCRIPTION']) || formation;
+// ── Display geology properties ────────────────────────────────────────────────
+function displayProps(p) {
+  // Field names confirmed from the BGS 625k OGC API CSV response
+  const formation = p.lex_d   || p.lex_rcs_d || p.rcs_d || '—';
+  const rocktype  = p.rcs_d   || p.bgstype   || '—';
+  const age       = (p.max_time_d && p.min_time_d && p.max_time_d !== p.min_time_d)
+                    ? `${p.max_time_d} – ${p.min_time_d}`
+                    : (p.max_time_d || p.min_time_d || '—');
+  const period    = p.max_period || p.max_era || p.max_eon || '—';
+  const code      = p.lex_rcs    || p.map_code || p.lex || '—';
+  const headline  = p.lex_d      || p.rcs_d    || formation;
 
   setDot('ok');
-  setRock(headline.length > 55 ? headline.slice(0,55) + '…' : headline);
+  setRock(headline.length > 58 ? headline.slice(0,58) + '…' : headline);
   setVal('v-formation', formation);
   setVal('v-rocktype',  rocktype);
   setVal('v-age',       age);
   setVal('v-period',    period);
   setVal('v-code',      code, 'dim');
-}
-
-// Return first non-null, non-empty value found for any of the given keys
-function pick(obj, keys) {
-  for (const k of keys) {
-    const v = obj[k];
-    if (v != null && v !== '' && v !== 'Null' && v !== 'null' && v !== ' ') return String(v).trim();
-  }
-  return null;
 }
 
 // ── Marker ────────────────────────────────────────────────────────────────────
@@ -447,36 +327,23 @@ function placeMarker(latlng) {
 }
 
 // ── UI helpers ────────────────────────────────────────────────────────────────
-function setDot(state) {
-  const d = document.getElementById('dot');
-  d.className = ''; if (state) d.classList.add(state);
-}
-function setRock(t) { document.getElementById('rock').textContent = t; }
+function setDot(s)    { const d=document.getElementById('dot'); d.className=''; if(s) d.classList.add(s); }
+function setRock(t)   { document.getElementById('rock').textContent = t; }
 function setVal(id, v, cls) {
   const el = document.getElementById(id);
   el.textContent = v || '—';
   el.className = 'rv' + (id==='v-formation' ? ' gold' : '') + (cls ? ' '+cls : '');
 }
-function clearFields() {
-  ['v-formation','v-rocktype','v-age','v-period','v-code'].forEach(id => setVal(id,'—'));
-}
+function clearFields() { ['v-formation','v-rocktype','v-age','v-period','v-code'].forEach(id => setVal(id,'—')); }
 function resetPanel() {
   setDot(''); setRock('Tap the map or press ⊕ to begin'); clearFields();
   document.getElementById('vlat').textContent = '—';
   document.getElementById('vlon').textContent = '—';
 }
-function togglePanel() {
-  panelOpen = !panelOpen;
-  document.getElementById('panel').classList.toggle('open', panelOpen);
-}
-function showCover(msg) {
-  document.getElementById('cover-msg').textContent = msg;
-  document.getElementById('cover').classList.add('on');
-}
-function hideCover() { document.getElementById('cover').classList.remove('on'); }
-function hideHint() {
-  if (!hintGone) { hintGone = true; document.getElementById('hint').classList.add('gone'); }
-}
+function togglePanel() { panelOpen=!panelOpen; document.getElementById('panel').classList.toggle('open',panelOpen); }
+function showCover(m) { document.getElementById('cover-msg').textContent=m; document.getElementById('cover').classList.add('on'); }
+function hideCover()  { document.getElementById('cover').classList.remove('on'); }
+function hideHint()   { if(!hintGone){ hintGone=true; document.getElementById('hint').classList.add('gone'); } }
 
 init();
 </script>
