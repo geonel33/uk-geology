@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>UK Geology Explorer</title>
+<title>GB & Ireland Geology Explorer</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <style>
@@ -23,15 +23,16 @@ html,body { height:100%; overflow:hidden; background:var(--bg); }
   padding:11px 14px; display:flex; align-items:center;
   justify-content:space-between; flex-shrink:0; z-index:1000;
 }
-#header h1 { font-family:var(--font); font-size:17px; font-weight:normal; color:var(--accent); }
+#header h1 { font-family:var(--font); font-size:16px; font-weight:normal; color:var(--accent); }
 #header p  { font-size:10px; color:var(--muted); text-transform:uppercase; letter-spacing:.06em; margin-top:1px; }
-#layer-controls { display:flex; gap:5px; }
+#controls { display:flex; gap:5px; flex-wrap:wrap; justify-content:flex-end; }
 .lbtn {
-  font-size:11px; padding:5px 10px; border-radius:20px;
+  font-size:11px; padding:5px 9px; border-radius:20px;
   border:1px solid var(--border); background:var(--surface);
   color:var(--muted); cursor:pointer; transition:all .15s; white-space:nowrap;
 }
 .lbtn.active { border-color:var(--accent); color:var(--accent); background:rgba(200,169,110,.12); }
+.lbtn.source-active { border-color:var(--green); color:var(--green); background:rgba(126,184,154,.12); }
 
 /* Map */
 #map { flex:1; min-height:0; position:relative; }
@@ -94,6 +95,14 @@ html,body { height:100%; overflow:hidden; background:var(--bg); }
 .ci { display:flex; flex-direction:column; }
 .cl { font-size:10px; color:var(--muted); text-transform:uppercase; letter-spacing:.06em; }
 .cv { font-size:13px; font-family:monospace; color:var(--text); }
+/* Source badge */
+#source-badge {
+  font-size:10px; padding:2px 8px; border-radius:10px;
+  border:1px solid var(--border); color:var(--muted);
+  margin-left:auto; margin-right:4px; white-space:nowrap;
+}
+#source-badge.bgs  { border-color:var(--accent); color:var(--accent); }
+#source-badge.gsi  { border-color:var(--green);  color:var(--green);  }
 #pbody { padding:0 14px 12px; }
 .row { display:flex; justify-content:space-between; align-items:baseline; padding:5px 0; border-bottom:1px solid var(--border); font-size:13px; }
 .row:last-child { border-bottom:none; }
@@ -101,23 +110,19 @@ html,body { height:100%; overflow:hidden; background:var(--bg); }
 .rv { color:var(--text); text-align:right; }
 .rv.gold { color:var(--accent); font-family:var(--font); font-style:italic; }
 .rv.dim  { color:var(--muted); font-size:12px; }
-
-/* Clickable formation name */
 .rv.clickable {
   color:var(--accent); font-family:var(--font); font-style:italic;
-  cursor:pointer; text-decoration:underline; text-decoration-style:dotted;
-  text-underline-offset:3px;
+  cursor:pointer; text-decoration:underline; text-decoration-style:dotted; text-underline-offset:3px;
 }
-.rv.clickable:hover { opacity:0.8; }
+.rv.clickable:hover { opacity:.8; }
 
-/* ── Description Modal ── */
+/* Modal */
 #modal-backdrop {
   position:fixed; inset:0; background:rgba(0,0,0,0.7);
   z-index:2000; display:flex; align-items:flex-end;
   opacity:0; pointer-events:none; transition:opacity .25s;
 }
 #modal-backdrop.show { opacity:1; pointer-events:all; }
-
 #modal {
   background:var(--surface); width:100%; max-height:85vh;
   border-radius:16px 16px 0 0; border-top:1px solid var(--border);
@@ -125,62 +130,31 @@ html,body { height:100%; overflow:hidden; background:var(--bg); }
   transform:translateY(100%); transition:transform .3s ease;
 }
 #modal-backdrop.show #modal { transform:translateY(0); }
-
-#modal-handle {
-  display:flex; justify-content:center; padding:10px 0 0;
-  flex-shrink:0; cursor:pointer;
-}
-#modal-handle-bar {
-  width:36px; height:4px; border-radius:2px; background:var(--border);
-}
-
+#modal-handle { display:flex; justify-content:center; padding:10px 0 0; flex-shrink:0; cursor:pointer; }
+#modal-handle-bar { width:36px; height:4px; border-radius:2px; background:var(--border); }
 #modal-header {
   padding:10px 16px 12px; display:flex; align-items:flex-start;
-  justify-content:space-between; border-bottom:1px solid var(--border);
-  flex-shrink:0;
+  justify-content:space-between; border-bottom:1px solid var(--border); flex-shrink:0;
 }
-#modal-title {
-  font-family:var(--font); font-size:16px; color:var(--accent);
-  font-style:italic; line-height:1.35; flex:1; margin-right:12px;
-}
-#modal-close {
-  background:none; border:none; color:var(--muted); font-size:22px;
-  cursor:pointer; line-height:1; padding:0 2px; flex-shrink:0;
-}
+#modal-title { font-family:var(--font); font-size:16px; color:var(--accent); font-style:italic; line-height:1.35; flex:1; margin-right:12px; }
+#modal-close { background:none; border:none; color:var(--muted); font-size:22px; cursor:pointer; line-height:1; padding:0 2px; flex-shrink:0; }
 #modal-close:hover { color:var(--text); }
-
-#modal-body {
-  overflow-y:auto; padding:14px 16px 24px; flex:1;
-}
-
-#modal-loading {
-  display:flex; align-items:center; gap:10px; padding:8px 0;
-  color:var(--muted); font-size:13px;
-}
-
+#modal-body { overflow-y:auto; padding:14px 16px 24px; flex:1; }
 .modal-section { margin-bottom:16px; }
-.modal-section-title {
-  font-size:10px; color:var(--muted); text-transform:uppercase;
-  letter-spacing:.07em; margin-bottom:6px;
-}
-.modal-section-body {
-  font-size:13px; color:var(--text); line-height:1.6;
-}
+.modal-section-title { font-size:10px; color:var(--muted); text-transform:uppercase; letter-spacing:.07em; margin-bottom:6px; }
+.modal-section-body { font-size:13px; color:var(--text); line-height:1.6; }
 .modal-section-body.italic { font-family:var(--font); font-style:italic; color:var(--accent); }
-
 .modal-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:16px; }
 .modal-cell { display:flex; flex-direction:column; gap:3px; }
 .modal-cell-label { font-size:10px; color:var(--muted); text-transform:uppercase; letter-spacing:.06em; }
 .modal-cell-value { font-size:13px; color:var(--text); }
-
-#modal-lexicon-link {
+.modal-ext-link {
   display:flex; align-items:center; gap:8px; padding:11px 14px;
   background:var(--surface2); border:1px solid var(--border);
   border-radius:8px; color:var(--accent); font-size:13px;
-  text-decoration:none; margin-top:4px;
+  text-decoration:none; margin-top:8px;
 }
-#modal-lexicon-link:hover { border-color:var(--accent); }
-#modal-lexicon-link svg { flex-shrink:0; }
+.modal-ext-link:hover { border-color:var(--accent); }
 
 /* Leaflet overrides */
 .leaflet-control-zoom { border:1px solid var(--border)!important; }
@@ -194,10 +168,10 @@ html,body { height:100%; overflow:hidden; background:var(--bg); }
 <div id="app">
   <div id="header">
     <div>
-      <h1>UK Geology Explorer</h1>
-      <p>British Geological Survey · 625k &amp; 50k</p>
+      <h1>GB &amp; Ireland Geology Explorer</h1>
+      <p>BGS · Geological Survey Ireland</p>
     </div>
-    <div id="layer-controls">
+    <div id="controls">
       <button class="lbtn active" id="btn-bed" onclick="setLayer('bed')">Bedrock</button>
       <button class="lbtn"        id="btn-sup" onclick="setLayer('sup')">Superficial</button>
     </div>
@@ -220,6 +194,7 @@ html,body { height:100%; overflow:hidden; background:var(--bg); }
   <div id="panel">
     <div id="phead" onclick="togglePanel()">
       <div id="phead-left"><div id="dot"></div><span id="rock">Tap the map or press ⊕ to begin</span></div>
+      <span id="source-badge"></span>
       <button id="chevron" aria-label="Expand">▾</button>
     </div>
     <div id="coords">
@@ -236,7 +211,7 @@ html,body { height:100%; overflow:hidden; background:var(--bg); }
   </div>
 </div>
 
-<!-- ── Description Modal ── -->
+<!-- Modal -->
 <div id="modal-backdrop" onclick="handleBackdropClick(event)">
   <div id="modal">
     <div id="modal-handle" onclick="closeModal()"><div id="modal-handle-bar"></div></div>
@@ -244,38 +219,60 @@ html,body { height:100%; overflow:hidden; background:var(--bg); }
       <div id="modal-title">Formation details</div>
       <button id="modal-close" onclick="closeModal()" aria-label="Close">×</button>
     </div>
-    <div id="modal-body">
-      <div id="modal-loading">
-        <div class="ring" style="width:18px;height:18px;border-width:2px;flex-shrink:0"></div>
-        Loading BGS Lexicon…
-      </div>
-    </div>
+    <div id="modal-body"></div>
   </div>
 </div>
 
 <script>
-// ── Config ────────────────────────────────────────────────────────────────────
-const OGC_BASE = 'https://ogcapi.bgs.ac.uk/collections/';
-const COLLECTIONS = { bed:'bgsgeology625kbedrock', sup:'bgsgeology625ksuperficial' };
+// ═══════════════════════════════════════════════════════════════════════════════
+// DATA SOURCES
+// ═══════════════════════════════════════════════════════════════════════════════
 
-const WMS_625 = 'https://ogc.bgs.ac.uk/cgi-bin/BGS_Bedrock_and_Superficial_Geology/ows?';
-const WMS_50K = 'https://map.bgs.ac.uk/arcgis/services/BGS_Detailed_Geology/MapServer/WMSServer?';
-const LAYERS_625 = { bed:'GBR_BGS_625k_BLS', sup:'GBR_BGS_625k_SLS' };
-const LAYERS_50K = { bed:'BGS.50k.Bedrock',  sup:'BGS.50k.Superficial.deposits' };
+// ── Great Britain: BGS ────────────────────────────────────────────────────────
+const BGS_OGC   = 'https://ogcapi.bgs.ac.uk/collections/';
+const BGS_COLS  = { bed:'bgsgeology625kbedrock', sup:'bgsgeology625ksuperficial' };
+const BGS_WMS   = 'https://ogc.bgs.ac.uk/cgi-bin/BGS_Bedrock_and_Superficial_Geology/ows?';
+const BGS_50K   = 'https://map.bgs.ac.uk/arcgis/services/BGS_Detailed_Geology/MapServer/WMSServer?';
+const BGS_WMS_LAYERS  = { bed:'GBR_BGS_625k_BLS', sup:'GBR_BGS_625k_SLS' };
+const BGS_50K_LAYERS  = { bed:'BGS.50k.Bedrock',  sup:'BGS.50k.Superficial.deposits' };
+const BGS_LEXICON_URL = 'https://webapps.bgs.ac.uk/lexicon/lexicon.cfm?pub=';
 
-// BGS Lexicon base URL — pub= takes the LEX code (e.g. "LIAS", "CR", "CHALK")
-const LEXICON_URL = 'https://webapps.bgs.ac.uk/lexicon/lexicon.cfm?pub=';
+// ── Republic of Ireland: GSI ──────────────────────────────────────────────────
+// WMS tile overlay — 500k seamless ROI+NI dataset
+const GSI_WMS  = 'https://gsi.geodata.gov.ie/server/services/Bedrock/IE_GSI_GSNI_Bedrock_Geology_Datasets_500K_IE32_ITM/MapServer/WMSServer?';
+const GSI_WMS_LAYER = '0'; // Layer 0 = bedrock polygons in this WMS service
 
-let map, wms625, wms50k, marker;
+// FeatureServer for point queries — layer 2 = bedrock polygons, supports inSR=4326
+const GSI_REST = 'https://gsi.geodata.gov.ie/server/rest/services/Bedrock/IE_GSI_GSNI_Bedrock_Geology_Datasets_500K_IE32_ITM/FeatureServer/2/query';
+
+// GSI superficial (Quaternary) WMS and FeatureServer
+const GSI_QUAT_WMS  = 'https://gsi.geodata.gov.ie/server/services/Quaternary/IE_GSI_QUAT_Datasets_500K_IE32_ITM/MapServer/WMSServer?';
+const GSI_QUAT_REST = 'https://gsi.geodata.gov.ie/server/rest/services/Quaternary/IE_GSI_QUAT_Datasets_500K_IE32_ITM/FeatureServer/0/query';
+
+// Ireland bounding box (approx) for detecting which source to query
+// ROI lon: -10.6 to -6.0,  lat: 51.4 to 55.4
+function isInIreland(lat, lon) {
+  return lon >= -10.7 && lon <= -5.8 && lat >= 51.3 && lat <= 55.5;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════════════════════════════════════
+let map, wmsGB625, wmsGB50k, wmsIE, marker;
 let currentLayer = 'bed';
 let opacity = 0.70;
 let panelOpen = false;
 let hintGone  = false;
-let currentProps = null; // stores the last queried feature properties
+let currentProps = null;
+let currentSource = null; // 'bgs' or 'gsi'
 
-// ── Init ──────────────────────────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════════════════════════════
 function init() {
-  map = L.map('map', { center:[54.3, -2.8], zoom:6, zoomControl:true });
+  // Centre view to show both GB and Ireland
+  map = L.map('map', { center:[54.0, -4.0], zoom:6, zoomControl:true });
+
   L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
     maxZoom:19,
     attribution:'© <a href="https://openstreetmap.org">OpenStreetMap</a> contributors'
@@ -289,21 +286,38 @@ function init() {
   map.on('locationerror', onLocErr);
 }
 
-// ── WMS layers ────────────────────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════════════════════
+// WMS LAYERS
+// ═══════════════════════════════════════════════════════════════════════════════
 function addWmsLayers() {
-  if (wms625) map.removeLayer(wms625);
-  if (wms50k) map.removeLayer(wms50k);
-  wms625 = L.tileLayer.wms(WMS_625, {
-    layers:WMS_LAYERS_625(), format:'image/png', transparent:true,
-    version:'1.1.1', opacity, attribution:'BGS © UKRI 2024'
+  if (wmsGB625) map.removeLayer(wmsGB625);
+  if (wmsGB50k) map.removeLayer(wmsGB50k);
+  if (wmsIE)    map.removeLayer(wmsIE);
+
+  // GB bedrock 625k
+  wmsGB625 = L.tileLayer.wms(BGS_WMS, {
+    layers: BGS_WMS_LAYERS[currentLayer], format:'image/png',
+    transparent:true, version:'1.1.1', opacity,
+    attribution:'BGS © UKRI 2024'
   }).addTo(map);
-  wms50k = L.tileLayer.wms(WMS_50K, {
-    layers:WMS_LAYERS_50K(), format:'image/png', transparent:true,
-    version:'1.3.0', opacity, minZoom:11, attribution:'BGS © UKRI 2024'
+
+  // GB bedrock 50k (detailed, zoom 11+)
+  wmsGB50k = L.tileLayer.wms(BGS_50K, {
+    layers: BGS_50K_LAYERS[currentLayer], format:'image/png',
+    transparent:true, version:'1.3.0', opacity, minZoom:11,
+    attribution:'BGS © UKRI 2024'
+  }).addTo(map);
+
+  // Ireland — only bedrock available at this scale from GSI 500k
+  // (quaternary/superficial at 500k is a separate service)
+  const ieWmsUrl  = currentLayer === 'sup' ? GSI_QUAT_WMS  : GSI_WMS;
+  const ieWmsLyr  = currentLayer === 'sup' ? '0'            : GSI_WMS_LAYER;
+  wmsIE = L.tileLayer.wms(ieWmsUrl, {
+    layers: ieWmsLyr, format:'image/png',
+    transparent:true, version:'1.3.0', opacity,
+    attribution:'GSI © Geological Survey Ireland CC-BY 4.0'
   }).addTo(map);
 }
-function WMS_LAYERS_625() { return LAYERS_625[currentLayer]; }
-function WMS_LAYERS_50K() { return LAYERS_50K[currentLayer]; }
 
 function setLayer(type) {
   currentLayer = type;
@@ -311,13 +325,15 @@ function setLayer(type) {
   document.getElementById('btn-' + type).classList.add('active');
   addWmsLayers(); resetPanel();
 }
+
 function setOpacity(v) {
   opacity = v / 100;
-  if (wms625) wms625.setOpacity(opacity);
-  if (wms50k) wms50k.setOpacity(opacity);
+  [wmsGB625, wmsGB50k, wmsIE].forEach(l => l && l.setOpacity(opacity));
 }
 
-// ── Geolocation ───────────────────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════════════════════
+// GEOLOCATION
+// ═══════════════════════════════════════════════════════════════════════════════
 function locate() {
   document.getElementById('locate-btn').classList.add('spin');
   setDot('busy'); setRock('Finding your location…'); showCover('Locating you…');
@@ -335,41 +351,106 @@ function onLocErr(e) {
     : 'Location unavailable — tap the map instead');
 }
 
-// ── BGS OGC API query ─────────────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════════════════════
+// QUERY — auto-detects GB vs Ireland and calls the right API
+// ═══════════════════════════════════════════════════════════════════════════════
 async function query(latlng) {
-  setDot('busy'); setRock('Querying BGS geology…');
-  showCover('Querying BGS…'); clearFields(); currentProps = null;
+  setDot('busy'); setRock('Querying geology…');
+  showCover('Querying…'); clearFields(); currentProps = null; currentSource = null;
 
+  if (isInIreland(latlng.lat, latlng.lng)) {
+    await queryGSI(latlng);
+  } else {
+    await queryBGS(latlng);
+  }
+}
+
+// ── BGS query (OGC API bbox, returns GeoJSON) ─────────────────────────────────
+async function queryBGS(latlng) {
   const d = 0.005, lat = latlng.lat, lon = latlng.lng;
-  const url = `${OGC_BASE}${COLLECTIONS[currentLayer]}/items?f=json&limit=1&bbox=${lon-d},${lat-d},${lon+d},${lat+d}`;
-
+  const url = `${BGS_OGC}${BGS_COLS[currentLayer]}/items?f=json&limit=1&bbox=${lon-d},${lat-d},${lon+d},${lat+d}`;
   try {
     const resp = await fetch(url);
     if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
     const data = await resp.json();
     hideCover();
     if (!data.features || data.features.length === 0) {
-      setDot('err');
-      setRock('No geology data here — may be offshore or outside UK coverage');
-      setVal('v-formation', 'Try a different location or zoom in');
-      return;
+      setDot('err'); setRock('No BGS data here — try zooming in or tapping a different spot');
+      setVal('v-formation', 'Outside UK coverage or offshore'); return;
     }
-    currentProps = data.features[0].properties;
-    displayProps(currentProps);
-  } catch(err) {
-    hideCover(); setDot('err');
-    setRock('Query failed — check your internet connection');
-    console.error(err);
+    currentSource = 'bgs';
+    currentProps  = data.features[0].properties;
+    displayBGS(currentProps);
+  } catch(e) {
+    hideCover(); setDot('err'); setRock('BGS query failed — check connection'); console.error(e);
   }
 }
 
-// ── Display geology in panel ──────────────────────────────────────────────────
-function displayProps(p) {
+// ── GSI query (ArcGIS FeatureServer, inSR=4326, JSONP to handle potential CORS) ─
+let _gsiCb = 0;
+function queryGSI(latlng) {
+  return new Promise(resolve => {
+    const restUrl = currentLayer === 'sup' ? GSI_QUAT_REST : GSI_REST;
+    const cbName  = '_gsi_cb_' + (++_gsiCb);
+    let timer;
+
+    window[cbName] = function(data) {
+      clearTimeout(timer);
+      hideCover();
+      delete window[cbName];
+      const s = document.getElementById(cbName);
+      if (s) s.remove();
+
+      if (!data.features || data.features.length === 0) {
+        setDot('err');
+        setRock(currentLayer === 'sup'
+          ? 'No superficial data here — try Bedrock layer for Ireland'
+          : 'No GSI data here — may be outside Republic of Ireland coverage');
+        setVal('v-formation', 'Try tapping a different spot');
+        resolve(); return;
+      }
+      currentSource = 'gsi';
+      currentProps  = data.features[0].attributes;
+      displayGSI(currentProps);
+      resolve();
+    };
+
+    timer = setTimeout(() => {
+      hideCover(); delete window[cbName];
+      const s = document.getElementById(cbName); if (s) s.remove();
+      setDot('err'); setRock('GSI server timed out — try again'); resolve();
+    }, 12000);
+
+    const params = new URLSearchParams({
+      geometry:       `${latlng.lng},${latlng.lat}`,
+      geometryType:   'esriGeometryPoint',
+      inSR:           '4326',
+      spatialRel:     'esriSpatialRelIntersects',
+      outFields:      '*',
+      returnGeometry: 'false',
+      callback:       cbName,
+      f:              'json'
+    });
+
+    const script = document.createElement('script');
+    script.id  = cbName;
+    script.src = `${restUrl}?${params}`;
+    script.onerror = () => {
+      clearTimeout(timer); hideCover(); delete window[cbName]; script.remove();
+      setDot('err'); setRock('Could not reach GSI server — check connection'); resolve();
+    };
+    document.head.appendChild(script);
+  });
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// DISPLAY RESULTS
+// ═══════════════════════════════════════════════════════════════════════════════
+function displayBGS(p) {
   const formation = p.lex_d   || p.lex_rcs_d || p.rcs_d || '—';
   const rocktype  = p.rcs_d   || p.bgstype   || '—';
   const age       = (p.max_time_d && p.min_time_d && p.max_time_d !== p.min_time_d)
-                    ? `${p.max_time_d} – ${p.min_time_d}`
-                    : (p.max_time_d || p.min_time_d || '—');
+                    ? `${p.max_time_d} – ${p.min_time_d}` : (p.max_time_d || p.min_time_d || '—');
   const period    = p.max_period || p.max_era || p.max_eon || '—';
   const code      = p.lex_rcs   || p.map_code || p.lex   || '—';
   const headline  = p.lex_d     || p.rcs_d    || formation;
@@ -377,17 +458,16 @@ function displayProps(p) {
 
   setDot('ok');
   setRock(headline.length > 58 ? headline.slice(0,58)+'…' : headline);
+  setSourceBadge('bgs');
 
-  // Formation — clickable if we have a lex code
   const fEl = document.getElementById('v-formation');
   fEl.textContent = formation;
   if (lexCode && formation !== '—') {
     fEl.className = 'rv clickable';
-    fEl.title = 'Tap for full BGS description';
-    fEl.onclick = () => openModal(formation, lexCode, p);
+    fEl.title     = 'Tap for full BGS description';
+    fEl.onclick   = () => openModalBGS(formation, lexCode, p);
   } else {
-    fEl.className = 'rv gold';
-    fEl.onclick = null;
+    fEl.className = 'rv gold'; fEl.onclick = null;
   }
 
   setVal('v-rocktype', rocktype);
@@ -396,64 +476,62 @@ function displayProps(p) {
   setVal('v-code',     code, 'dim');
 }
 
-// ── Modal ─────────────────────────────────────────────────────────────────────
-function openModal(formationName, lexCode, props) {
-  const backdrop = document.getElementById('modal-backdrop');
+function displayGSI(a) {
+  // GSI 500k FeatureServer field names
+  const formation = a.UNITNAME   || a.LITH_DESC || a.DESCRIPT || '—';
+  const rocktype  = a.LITH_DESC  || a.LITHO     || '—';
+  const age       = (a.MAXAGE && a.MINAGE && a.MAXAGE !== a.MINAGE)
+                    ? `${a.MAXAGE} – ${a.MINAGE}` : (a.MAXAGE || a.MINAGE || a.AGE || '—');
+  const period    = a.PERIOD     || a.ERA        || '—';
+  const code      = a.CODE       || a.MAPUNITID  || a.OBJECTID || '—';
+  const headline  = a.UNITNAME   || formation;
+
+  setDot('ok');
+  setRock(headline.length > 58 ? headline.slice(0,58)+'…' : headline);
+  setSourceBadge('gsi');
+
+  const fEl = document.getElementById('v-formation');
+  fEl.textContent = formation;
+  fEl.className   = 'rv clickable';
+  fEl.title       = 'Tap for full GSI description';
+  fEl.onclick     = () => openModalGSI(formation, a);
+
+  setVal('v-rocktype', rocktype);
+  setVal('v-age',      age);
+  setVal('v-period',   period);
+  setVal('v-code',     String(code), 'dim');
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// MODALS
+// ═══════════════════════════════════════════════════════════════════════════════
+function openModalBGS(formationName, lexCode, p) {
   document.getElementById('modal-title').textContent = formationName;
 
-  // Build content from data we already have (no extra API call needed)
-  const body = document.getElementById('modal-body');
-  body.innerHTML = buildModalContent(props, lexCode);
-
-  backdrop.classList.add('show');
-  document.body.style.overflow = 'hidden';
-}
-
-function closeModal() {
-  document.getElementById('modal-backdrop').classList.remove('show');
-  document.body.style.overflow = '';
-}
-
-function handleBackdropClick(e) {
-  if (e.target === document.getElementById('modal-backdrop')) closeModal();
-}
-
-function buildModalContent(p, lexCode) {
-  const formation  = p.lex_d      || p.lex_rcs_d  || '—';
-  const rcsDesc    = p.rcs_d      || '—';
+  const formation  = p.lex_d      || p.lex_rcs_d || '—';
   const lexRcsDesc = p.lex_rcs_d  || '—';
-  const rocktype   = p.rcs_d      || p.bgstype     || '—';
+  const rocktype   = p.rcs_d      || p.bgstype   || '—';
   const bgstype    = p.bgstype    || '—';
   const maxAge     = p.max_time_d || '—';
   const minAge     = p.min_time_d || '—';
+  const maxAgeY    = p.max_time_y ? (p.max_time_y/1e6).toFixed(0)+' Ma' : '—';
+  const minAgeY    = p.min_time_y ? (p.min_time_y/1e6).toFixed(0)+' Ma' : '—';
   const maxPeriod  = p.max_period || '—';
   const minPeriod  = p.min_period || '—';
-  const maxEra     = p.max_era    || '—';
-  const maxEon     = p.max_eon    || '—';
-  const maxAgeY    = p.max_time_y ? (p.max_time_y / 1e6).toFixed(0) + ' Ma' : '—';
-  const minAgeY    = p.min_time_y ? (p.min_time_y / 1e6).toFixed(0) + ' Ma' : '—';
-  const mapCode    = p.map_code   || p.lex_rcs     || '—';
+  const mapCode    = p.map_code   || p.lex_rcs   || '—';
   const rank       = p.rank       || '—';
-  const lexRcs     = p.lex_rcs    || '—';
-  const lexiconHref = LEXICON_URL + encodeURIComponent(lexCode);
 
-  let html = '';
-
-  // Full formation description
-  html += `<div class="modal-section">
+  let html = `<div class="modal-section">
     <div class="modal-section-title">Formation</div>
     <div class="modal-section-body italic">${formation}</div>
   </div>`;
 
-  // If lex_rcs_d differs from lex_d, show it as a fuller description
   if (lexRcsDesc !== '—' && lexRcsDesc !== formation) {
     html += `<div class="modal-section">
       <div class="modal-section-title">Full unit description</div>
       <div class="modal-section-body">${lexRcsDesc}</div>
     </div>`;
   }
-
-  // Rock character
   if (rocktype !== '—') {
     html += `<div class="modal-section">
       <div class="modal-section-title">Rock character</div>
@@ -461,40 +539,108 @@ function buildModalContent(p, lexCode) {
     </div>`;
   }
 
-  // Classification grid
   html += `<div class="modal-grid">`;
-  html += gridCell('Map code',   mapCode);
-  html += gridCell('Rank',       rank);
-  html += gridCell('Type',       bgstype);
-  html += gridCell('LEX code',   lexCode || '—');
-  html += gridCell('Max age',    maxAge);
-  html += gridCell('Min age',    minAge);
-  if (maxAgeY !== '—') html += gridCell('Approx. max', maxAgeY);
-  if (minAgeY !== '—') html += gridCell('Approx. min', minAgeY);
-  html += gridCell('Period',     maxPeriod !== minPeriod && minPeriod !== '—' ? `${maxPeriod} – ${minPeriod}` : maxPeriod);
-  html += gridCell('Era',        maxEra);
-  html += gridCell('Eon',        maxEon);
+  html += cell('Map code', mapCode); html += cell('Rank',      rank);
+  html += cell('Type',     bgstype); html += cell('LEX code',  lexCode||'—');
+  html += cell('Max age',  maxAge);  html += cell('Min age',   minAge);
+  if (maxAgeY !== '—') html += cell('Approx. max', maxAgeY);
+  if (minAgeY !== '—') html += cell('Approx. min', minAgeY);
+  html += cell('Period', maxPeriod !== minPeriod && minPeriod !== '—'
+    ? `${maxPeriod} – ${minPeriod}` : maxPeriod);
+  html += cell('Era', p.max_era||'—'); html += cell('Eon', p.max_eon||'—');
   html += `</div>`;
 
-  // Link to BGS Lexicon
-  html += `<a id="modal-lexicon-link" href="${lexiconHref}" target="_blank" rel="noopener">
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-      <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
-    </svg>
-    View full entry in BGS Lexicon of Named Rock Units
-  </a>`;
+  html += extLink(BGS_LEXICON_URL + encodeURIComponent(lexCode),
+    'View full entry in BGS Lexicon of Named Rock Units');
 
-  return html;
+  showModal(html);
 }
 
-function gridCell(label, value) {
+function openModalGSI(formationName, a) {
+  document.getElementById('modal-title').textContent = formationName;
+
+  const unitname  = a.UNITNAME  || '—';
+  const lithDesc  = a.LITH_DESC || a.LITHO    || '—';
+  const descript  = a.DESCRIPT  || a.COMMENTS || '';
+  const maxAge    = a.MAXAGE    || '—';
+  const minAge    = a.MINAGE    || '—';
+  const period    = a.PERIOD    || '—';
+  const era       = a.ERA       || '—';
+  const code      = a.CODE      || '—';
+  const mapId     = a.MAPUNITID || '—';
+
+  let html = `<div class="modal-section">
+    <div class="modal-section-title">Rock Unit</div>
+    <div class="modal-section-body italic">${unitname}</div>
+  </div>`;
+
+  if (descript) {
+    html += `<div class="modal-section">
+      <div class="modal-section-title">Description</div>
+      <div class="modal-section-body">${descript}</div>
+    </div>`;
+  }
+  if (lithDesc !== '—') {
+    html += `<div class="modal-section">
+      <div class="modal-section-title">Lithology</div>
+      <div class="modal-section-body">${lithDesc}</div>
+    </div>`;
+  }
+
+  html += `<div class="modal-grid">`;
+  html += cell('Code',     code);   html += cell('Map unit ID', mapId);
+  html += cell('Max age',  maxAge); html += cell('Min age',     minAge);
+  html += cell('Period',   period); html += cell('Era',         era);
+  // include any other useful fields returned
+  if (a.THICKNESS)  html += cell('Thickness',  a.THICKNESS);
+  if (a.SUPERGROUP) html += cell('Supergroup', a.SUPERGROUP);
+  if (a.GROUP_NAME) html += cell('Group',      a.GROUP_NAME);
+  if (a.FM_NAME)    html += cell('Formation',  a.FM_NAME);
+  html += `</div>`;
+
+  html += extLink('https://www.gsi.ie/en-ie/programmes-and-projects/bedrock-mapping/Pages/default.aspx',
+    'Geological Survey Ireland — Bedrock Mapping');
+
+  showModal(html);
+}
+
+function cell(label, value) {
   return `<div class="modal-cell">
     <span class="modal-cell-label">${label}</span>
-    <span class="modal-cell-value">${value || '—'}</span>
+    <span class="modal-cell-value">${value||'—'}</span>
   </div>`;
 }
 
-// ── Marker ────────────────────────────────────────────────────────────────────
+function extLink(href, label) {
+  return `<a class="modal-ext-link" href="${href}" target="_blank" rel="noopener">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+    </svg>
+    ${label}
+  </a>`;
+}
+
+function showModal(html) {
+  document.getElementById('modal-body').innerHTML = html;
+  document.getElementById('modal-backdrop').classList.add('show');
+  document.body.style.overflow = 'hidden';
+}
+function closeModal() {
+  document.getElementById('modal-backdrop').classList.remove('show');
+  document.body.style.overflow = '';
+}
+function handleBackdropClick(e) {
+  if (e.target === document.getElementById('modal-backdrop')) closeModal();
+}
+
+// Swipe down to close
+let touchStartY = 0;
+document.getElementById('modal').addEventListener('touchstart', e => { touchStartY = e.touches[0].clientY; });
+document.getElementById('modal').addEventListener('touchend',   e => { if (e.changedTouches[0].clientY - touchStartY > 80) closeModal(); });
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// UI HELPERS
+// ═══════════════════════════════════════════════════════════════════════════════
 function placeMarker(latlng) {
   if (marker) map.removeLayer(marker);
   marker = L.circleMarker(latlng, {
@@ -504,7 +650,17 @@ function placeMarker(latlng) {
   document.getElementById('vlon').textContent = latlng.lng.toFixed(5);
 }
 
-// ── UI helpers ────────────────────────────────────────────────────────────────
+function setSourceBadge(source) {
+  const el = document.getElementById('source-badge');
+  if (source === 'bgs') {
+    el.textContent = 'BGS'; el.className = 'source-badge bgs';
+  } else if (source === 'gsi') {
+    el.textContent = 'GSI'; el.className = 'source-badge gsi';
+  } else {
+    el.textContent = ''; el.className = 'source-badge';
+  }
+}
+
 function setDot(s)  { const d=document.getElementById('dot'); d.className=''; if(s) d.classList.add(s); }
 function setRock(t) { document.getElementById('rock').textContent = t; }
 function setVal(id, v, cls) {
@@ -516,24 +672,19 @@ function setVal(id, v, cls) {
 function clearFields() {
   ['v-formation','v-rocktype','v-age','v-period','v-code'].forEach(id => {
     const el = document.getElementById(id);
-    el.textContent = '—'; el.className = 'rv'; el.onclick = null;
+    el.textContent='—'; el.className='rv'; el.onclick=null;
   });
 }
 function resetPanel() {
   setDot(''); setRock('Tap the map or press ⊕ to begin');
-  clearFields(); currentProps = null;
-  document.getElementById('vlat').textContent = '—';
-  document.getElementById('vlon').textContent = '—';
+  clearFields(); setSourceBadge(null); currentProps=null; currentSource=null;
+  document.getElementById('vlat').textContent='—';
+  document.getElementById('vlon').textContent='—';
 }
-function togglePanel() { panelOpen=!panelOpen; document.getElementById('panel').classList.toggle('open',panelOpen); }
-function showCover(m) { document.getElementById('cover-msg').textContent=m; document.getElementById('cover').classList.add('on'); }
-function hideCover()  { document.getElementById('cover').classList.remove('on'); }
-function hideHint()   { if(!hintGone){ hintGone=true; document.getElementById('hint').classList.add('gone'); } }
-
-// Swipe down to close modal
-let touchStartY = 0;
-document.getElementById('modal').addEventListener('touchstart', e => { touchStartY = e.touches[0].clientY; });
-document.getElementById('modal').addEventListener('touchend',   e => { if (e.changedTouches[0].clientY - touchStartY > 80) closeModal(); });
+function togglePanel()  { panelOpen=!panelOpen; document.getElementById('panel').classList.toggle('open',panelOpen); }
+function showCover(m)   { document.getElementById('cover-msg').textContent=m; document.getElementById('cover').classList.add('on'); }
+function hideCover()    { document.getElementById('cover').classList.remove('on'); }
+function hideHint()     { if(!hintGone){ hintGone=true; document.getElementById('hint').classList.add('gone'); } }
 
 init();
 </script>
